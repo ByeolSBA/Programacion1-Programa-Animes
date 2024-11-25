@@ -56,20 +56,22 @@ def mostrar_enlaces(results):
     else:
         print("No se encontraron enlaces.")
 
-# Guardar lista en archivo JSON
-def guardar_en_json(lista, nombre_archivo="capitulos.json"):
+# Guardar perfil en archivo JSON
+def guardar_perfil(usuario, capitulos, nombre_archivo="perfiles.json"):
+    perfiles = cargar_perfiles(nombre_archivo)
+    perfiles[usuario] = capitulos
     with open(nombre_archivo, "w") as archivo:
-        json.dump(lista, archivo, indent=4)
-    print(f"Datos guardados en {nombre_archivo}.")
+        json.dump(perfiles, archivo, indent=4)
+    print(f"Perfil de {usuario} guardado.")
 
-# Cargar lista desde archivo JSON
-def cargar_desde_json(nombre_archivo="capitulos.json"):
+# Cargar perfiles desde archivo JSON
+def cargar_perfiles(nombre_archivo="perfiles.json"):
     try:
         with open(nombre_archivo, "r") as archivo:
             return json.load(archivo)
     except FileNotFoundError:
         print(f"Archivo {nombre_archivo} no encontrado. Se creará uno nuevo.")
-        return []
+        return {}
 
 # Crear lista de capítulos o series
 def gestionar_capitulos(capitulos):
@@ -88,14 +90,12 @@ def gestionar_capitulos(capitulos):
         nuevo_capitulo = input("Escribe el nombre del nuevo capítulo o serie: ")
         capitulos.append(nuevo_capitulo)
         print(f"'{nuevo_capitulo}' ha sido agregado.")
-        guardar_en_json(capitulos)
     elif opcion == "2":
         try:
             index = int(input("Escribe el número del capítulo o serie a eliminar: ")) - 1
             if 0 <= index < len(capitulos):
                 eliminado = capitulos.pop(index)
                 print(f"'{eliminado}' ha sido eliminado.")
-                guardar_en_json(capitulos)
             else:
                 print("Índice fuera de rango.")
         except ValueError:
@@ -111,11 +111,40 @@ def menu_principal():
     print("1. Buscar serie")
     print("2. Gestionar capítulos")
     print("3. Salir")
-    
+
 # Cargar datos desde archivo JSON
 def main():
-    capitulos = cargar_desde_json()
+    # Cargar perfiles existentes
+    perfiles = cargar_perfiles()
 
+    # Elejir perfil
+    if perfiles:
+        print("\nPerfiles disponibles:")
+        for usuario in perfiles:
+            print(f"- {usuario}")
+        print("Crear un nuevo perfil (cualquier otra tecla)")
+        opcion = input("¿Quieres continuar con un perfil existente o crear uno nuevo? (Escribe 'nuevo' para crear uno nuevo): ").strip().lower()
+
+        if opcion == "nuevo":
+            usuario = input("Por favor, ingresa tu nombre: ")
+            print(f"¡Bienvenido, {usuario}!")
+            capitulos = []  
+        else:
+            usuario = input("Selecciona el perfil con el que deseas continuar: ").strip()
+            if usuario in perfiles:
+                capitulos = perfiles[usuario]
+                print(f"¡Bienvenido de nuevo, {usuario}!")
+            else:
+                print("Perfil no encontrado, creando uno nuevo.")
+                usuario = input("Por favor, ingresa tu nombre: ")
+                print(f"¡Bienvenido, {usuario}!")
+                capitulos = []  
+    else:
+        usuario = input("No se encontraron perfiles, por favor, ingresa tu nombre para crear uno: ")
+        print(f"¡Bienvenido, {usuario}!")
+        capitulos = []  # 
+
+    # Usar el perfil y su lista de capítulos
     with AnimeFLV() as api:
         while True:
             menu_principal()
@@ -129,6 +158,8 @@ def main():
             elif opcion == "2":
                 gestionar_capitulos(capitulos)
             elif opcion == "3":
+                # Guardar el perfil antes de salir
+                guardar_perfil(usuario, capitulos)
                 print("Saliendo del programa.")
                 break
             else:
