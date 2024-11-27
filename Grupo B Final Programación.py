@@ -1,6 +1,23 @@
 import json
 from animeflv import AnimeFLV
 
+class Perfil:
+    """Perfil de usuario"""
+    def __init__(self, nombre, capitulos=None):
+        self.nombre = nombre
+        self.capitulos = capitulos if capitulos else []
+
+    def to_dict(self):
+        """Convertir a diccionario"""
+        return {
+            "nombre": self.nombre,
+            "capitulos": self.capitulos
+        }
+
+    @staticmethod
+    def from_dict(data):
+        return Perfil(data["nombre"], data["capitulos"])
+
 # Método de ordenamiento Shell Sort
 def shell_sort(episodes):
     n = len(episodes)
